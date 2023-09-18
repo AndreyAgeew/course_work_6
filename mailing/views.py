@@ -1,13 +1,14 @@
+from random import sample
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.views.generic import TemplateView
-
+from blog.models import BlogPost
 from .models import Mailing, Client, Message
 from .forms import MailingForm, MessageForm
 
 
-class MainView(TemplateView):
-    template_name = 'mailing_service/main.html'
+class HomeView(TemplateView):
+    template_name = 'mailing/home.html'
     extra_context = {
         'title': 'Главная страница',
         'object_list': Mailing.objects.all()
@@ -15,7 +16,7 @@ class MainView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        all_posts = list(BlogEntry.objects.all())
+        all_posts = list(BlogPost.objects.all())
         context['random_blog_posts'] = sample(all_posts, min(3, len(all_posts)))
         return context
 
