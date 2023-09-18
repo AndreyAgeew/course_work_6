@@ -4,10 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>
-        {{title}}
+        {{ title }}
     </title>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="/static/css/text_label.css">
 </head>
 <body>
 <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
@@ -19,18 +18,36 @@
             <a class="p-2 btn btn-outline-primary" href="#">Рассылки</a>
             <a class="p-2 btn btn-outline-primary" href="#">Отчеты о доставке</a>
             <a class="p-2 btn btn-outline-primary" href="#">Блог</a>
-         </nav>
+        </nav>
     </div>
     <div class="col-2">
-        <nav class="ms-5">
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-primary dropdown-toggle btn-lg" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                {% if user.is_authenticated %}
+                    {{ user.email }}
+                {% else %}
+                    Войти
+                {% endif %}
+            </button>
             {% if user.is_authenticated %}
-            <a class="p-2 btn btn-outline-primary" href="#">Выйти</a>
-            <a class="p-2 btn btn-outline-primary" href="#">Профиль</a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/users/profile">Профиль</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" href="/users/logout">Выйти</a></li>
+                </ul>
             {% else %}
-            <a class="p-2 btn btn-outline-primary" href="#">Войти</a>
-            <a class="p-2 btn btn-outline-primary" href="#">Регистрация</a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/users">Войти</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" href="/users/register">Регистрация</a></li>
+                </ul>
             {% endif %}
-        </nav>
+        </div>
     </div>
 </div>
 {% block content %}
