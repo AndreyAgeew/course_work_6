@@ -7,7 +7,7 @@ class Client(models.Model):
     comment = models.TextField(blank=True)
 
     def __str__(self):
-        return  self.full_name
+        return self.full_name
 
 class Mailing(models.Model):
     start_time = models.DateTimeField()
@@ -24,7 +24,6 @@ class Mailing(models.Model):
     ]
     status = models.CharField(max_length=10, choices=status_choices)
     recipients = models.ManyToManyField(Client)
-
 
 
 class Message(models.Model):

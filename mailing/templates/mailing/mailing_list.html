@@ -1,0 +1,11 @@
+{% extends 'mailing/base.html' %}
+
+{% block content %}
+    <h2>Mailing List</h2>
+    <ul>
+        {% for mailing in mailings %}
+            <li><a href="{% url 'mailing_detail' mailing.pk %}">{{ mailing.start_time }} - {{ mailing.end_time }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

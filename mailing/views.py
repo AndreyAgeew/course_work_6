@@ -74,7 +74,7 @@ class ClientListView(View):
 
 
 class MailingListView(View):
-    template_name = 'mailing/home.html'
+    template_name = 'mailing/mailing_list.html'
 
     def get(self, request):
         mailings = Mailing.objects.all()
