@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, ListView, CreateView, DetailView, DeleteView
+from django.views.generic import TemplateView, ListView, CreateView, DetailView, DeleteView, UpdateView
 from blog.models import BlogPost
 from .models import Mailing, Client, Message, Log
 from .forms import MailingForm, MessageForm, ClientForm
@@ -39,7 +39,7 @@ class MailingListView(ListView):
         return context
 
 
-class MailingCreateView(CreateView):
+class MailingCreateView(LoginRequiredMixin,CreateView):
     model = Mailing
     form_class = MailingForm
     template_name = 'mailing/create_mailing.html'
@@ -50,6 +50,27 @@ class MailingCreateView(CreateView):
         new_mailing.owner = self.request.user
         new_mailing.save()
         return super().form_valid(form)
+
+
+class MailingUpdateView(LoginRequiredMixin, UpdateView):
+    model = Mailing
+    fields = ('start_time', 'frequency', 'recipients', 'status')
+    success_url = reverse_lazy('mailing:mailing')
+
+    def form_valid(self, form):
+        if form.is_valid():
+            new_mailing = form.save()
+            new_mailing.owner = self.request.user
+            new_mailing.save()
+        return super().form_valid(form)
+
+    def get_object(self, queryset=None):
+        mailing = super().get_object(queryset)
+        mailing = get_object_or_404(Mailing, id=mailing.pk)
+        user_groups = [group.name for group in self.request.user.groups.all()]
+        if mailing.owner != self.request.user and 'Managers' not in user_groups:
+            raise Http404
+        return mailing
 
 
 class MailingDetailView(DetailView):
