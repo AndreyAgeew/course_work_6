@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, CreateView, DetailView, DeleteView, UpdateView
 from blog.models import BlogPost
-from users.models import User
 from .models import Mailing, Client, Message, Log
 from .forms import MailingForm, MessageForm, ClientForm
 
@@ -18,6 +17,11 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['count_mailing'] = len(Mailing.objects.all())
+        active_mailings_count = Mailing.objects.filter(status__in=['created', 'started']).count()
+        context['active_mailings_count'] = active_mailings_count
+        unique_clients_count = Client.objects.filter(is_active=True).distinct().count()
+        context['unique_clients_count'] = unique_clients_count
         all_posts = list(BlogPost.objects.all())
         context['random_blog_posts'] = sample(all_posts, min(3, len(all_posts)))
         context['object_list'] = Mailing.objects.all()
@@ -75,7 +79,7 @@ class MailingUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs['initial'] = {'user': self.request.user}
         return kwargs
 
     def get_object(self, queryset=None):
