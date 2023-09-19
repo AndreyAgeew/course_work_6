@@ -31,15 +31,25 @@ class MailingListView(ListView):
     template_name = 'mailing/mailing_list.html'
     context_object_name = 'mailings'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        user_group_names = [group.name for group in user.groups.all()]
+        context['user_group_names'] = user_group_names
+        return context
+
 
 class MailingCreateView(CreateView):
     model = Mailing
     form_class = MailingForm
     template_name = 'mailing/create_mailing.html'
+    success_url = reverse_lazy('mailing:mailing')
 
     def form_valid(self, form):
-        mailing = form.save()
-        return redirect('mailing_detail', pk=mailing.pk)
+        new_mailing = form.save()
+        new_mailing.owner = self.request.user
+        new_mailing.save()
+        return super().form_valid(form)
 
 
 class MailingDetailView(DetailView):
@@ -61,31 +71,25 @@ class MailingDeleteView(LoginRequiredMixin, DeleteView):
     }
 
     def get_object(self, queryset=None):
-        title = super().get_object(queryset)
-        mailing = get_object_or_404(BlogPost, title=title)
+        mailing = super().get_object(queryset)
+        mailing = get_object_or_404(Mailing, id=mailing.pk)
         user_groups = [group.name for group in self.request.user.groups.all()]
         if mailing.owner != self.request.user and 'Managers' not in user_groups:
             raise Http404
         return mailing
 
 
-class MessageCreateView(CreateView):
-    model = Message
-    form_class = MessageForm
-    template_name = 'mailing/create_message.html'
-
-    def form_valid(self, form):
-        mailing = get_object_or_404(Mailing, pk=self.kwargs['mailing_pk'])
-        message = form.save(commit=False)
-        message.mailing = mailing
-        message.save()
-        return redirect('mailing_detail', pk=mailing.pk)
-
-
 class ClientListView(ListView):
     model = Client
     template_name = 'mailing/client_list.html'
     context_object_name = 'clients'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        user_group_names = [group.name for group in user.groups.all()]
+        context['user_group_names'] = user_group_names
+        return context
 
 
 class ClientCreateView(LoginRequiredMixin, CreateView):
@@ -105,6 +109,19 @@ class ClientCreateView(LoginRequiredMixin, CreateView):
         self.object.save()
 
         return super().form_valid(form)
+
+
+class MessageCreateView(CreateView):
+    model = Message
+    form_class = MessageForm
+    template_name = 'mailing/create_message.html'
+
+    def form_valid(self, form):
+        mailing = get_object_or_404(Mailing, pk=self.kwargs['mailing_pk'])
+        message = form.save(commit=False)
+        message.mailing = mailing
+        message.save()
+        return redirect('mailing_detail', pk=mailing.pk)
 
 
 class DeliveryReportView(ListView):
