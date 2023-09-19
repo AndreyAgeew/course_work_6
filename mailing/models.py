@@ -1,13 +1,18 @@
+from django.conf import settings
 from django.db import models
+
+NULLABLE = {'blank': True, 'null': True}
 
 
 class Client(models.Model):
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
     comment = models.TextField(blank=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE)
 
     def __str__(self):
         return self.full_name
+
 
 class Mailing(models.Model):
     start_time = models.DateTimeField()
@@ -24,12 +29,14 @@ class Mailing(models.Model):
     ]
     status = models.CharField(max_length=10, choices=status_choices)
     recipients = models.ManyToManyField(Client)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE)
 
 
 class Message(models.Model):
     mailing = models.ForeignKey(Mailing, on_delete=models.CASCADE)
     subject = models.CharField(max_length=255)
     body = models.TextField()
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE)
 
 
 class Log(models.Model):
