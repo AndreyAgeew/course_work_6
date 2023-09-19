@@ -39,17 +39,20 @@ class MailingListView(ListView):
         return context
 
 
-class MailingCreateView(LoginRequiredMixin,CreateView):
+class MailingCreateView(LoginRequiredMixin, CreateView):
     model = Mailing
     form_class = MailingForm
     template_name = 'mailing/create_mailing.html'
-    success_url = reverse_lazy('mailing:mailing')
 
     def form_valid(self, form):
         new_mailing = form.save()
         new_mailing.owner = self.request.user
         new_mailing.save()
+        self.mailing_pk = new_mailing.pk
         return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('mailing:create_message', kwargs={'mailing_pk': self.mailing_pk})
 
 
 class MailingUpdateView(LoginRequiredMixin, UpdateView):
@@ -116,11 +119,15 @@ class ClientListView(ListView):
 class ClientCreateView(LoginRequiredMixin, CreateView):
     model = Client
     form_class = ClientForm
-    success_url = reverse_lazy('mailing:client_list')
+    success_url = reverse_lazy('mailing:mailing')
     raise_exception = True
 
     def get_context_data(self, *, object_list=None, **kwargs):
         data = super().get_context_data(object_list=None, **kwargs)
+        client = get_object_or_404(Mailing, id=data.pk)
+        user_groups = [group.name for group in self.request.user.groups.all()]
+        if client.owner != self.request.user and 'Managers' not in user_groups:
+            raise Http404
         data['title'] = "Создание нового клиента."
         return data
 
@@ -128,21 +135,22 @@ class ClientCreateView(LoginRequiredMixin, CreateView):
         self.object = form.save()
         self.object.creator = self.request.user
         self.object.save()
-
         return super().form_valid(form)
 
 
-class MessageCreateView(CreateView):
+class MessageCreateView(LoginRequiredMixin, CreateView):
     model = Message
     form_class = MessageForm
     template_name = 'mailing/create_message.html'
+    success_url = reverse_lazy('mailing:mailing')
 
     def form_valid(self, form):
         mailing = get_object_or_404(Mailing, pk=self.kwargs['mailing_pk'])
+        print(mailing)
         message = form.save(commit=False)
         message.mailing = mailing
         message.save()
-        return redirect('mailing_detail', pk=mailing.pk)
+        return super().form_valid(form)
 
 
 class DeliveryReportView(ListView):
