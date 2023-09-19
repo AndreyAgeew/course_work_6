@@ -3,8 +3,14 @@
 {% block content %}
     <h2>Mailing List</h2>
     <ul>
+        {% if user.is_authenticated %}
+             <div class="col-12 mb-5">
+        <a class="btn btn-outline-primary" href="{% url 'mailing:create_mailing'  %}">Добавить запись</a>
+    </div>
+        {% endif %}
         {% for mailing in mailings %}
-            <li><a href="{% url 'mailing_detail' mailing.pk %}">{{ mailing.start_time }} - {{ mailing.end_time }}</a>
+            <li><a href="{% url 'mailing:mailing_detail' mailing.pk %}">{{ mailing.start_time }} - {{ mailing.end_time }} </a>
+            <a class="btn btn-outline-primary" href="{% url 'mailing:delete_mailing' mailing.pk %}">Удалить</a>
             </li>
         {% endfor %}
     </ul>
