@@ -1,5 +1,8 @@
+from django.conf import settings
 from django.db import models
 from pytils.translit import slugify
+
+from mailing.models import NULLABLE
 
 
 class BlogPost(models.Model):
@@ -10,6 +13,7 @@ class BlogPost(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_published = models.BooleanField(default=True)
     views_count = models.PositiveIntegerField(default=0)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE)
 
     def __str__(self):
         return self.title

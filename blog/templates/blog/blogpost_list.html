@@ -14,7 +14,7 @@
                     <h4 class="my-0 font-weight-normal">{{ item.title }}</h4>
                 </div>
                 <div class="card-body">
-                    <a href="{% url 'blog:detail' item.id %}">
+                    <a href="{% url 'blog:detail' item.slug %}">
                           <img alt="Фото товара" style="width: 75%" src="{% mediafile item.preview_image %} "/>
                     </a>
                     <ul class="list-unstyled mt-3 mb-4 text-start m-3">

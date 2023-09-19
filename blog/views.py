@@ -1,3 +1,6 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView, ListView, DetailView, UpdateView, DeleteView
 from pytils.translit import slugify
@@ -5,7 +8,7 @@ from pytils.translit import slugify
 from blog.models import BlogPost
 
 
-class BlogPostCreateView(CreateView):
+class BlogPostCreateView(CreateView, LoginRequiredMixin):
     model = BlogPost
     fields = ('title', 'content', 'preview_image')
     success_url = reverse_lazy('blog:list')
@@ -42,7 +45,7 @@ class BlogPostDetailView(DetailView):
         return self.object
 
 
-class BlogPostUpdateView(UpdateView):
+class BlogPostUpdateView(UpdateView, LoginRequiredMixin):
     model = BlogPost
     fields = ('title', 'content', 'preview_image')
     extra_context = {
@@ -56,11 +59,19 @@ class BlogPostUpdateView(UpdateView):
             new_blog.save()
         return super().form_valid(form)
 
+    def get_object(self, queryset=None):
+        title = self.kwargs.get('title')
+        blog = get_object_or_404(BlogPost, title=title)
+        if blog.owner != self.request.user and not self.request.user.is_staff:
+            print("!!!!!")
+            raise Http404
+        return blog
+
     def get_success_url(self):
         return reverse('blog:detail', args=[self.kwargs.get('slug')])
 
 
-class BlogPostDeleteView(DeleteView):
+class BlogPostDeleteView(DeleteView, LoginRequiredMixin):
     model = BlogPost
     success_url = reverse_lazy('blog:list')
     extra_context = {

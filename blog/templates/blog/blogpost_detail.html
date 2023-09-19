@@ -9,7 +9,8 @@
                 <div class="card-body">
                     <table class="table table-striped">
                         <tr class="align-self-lg-center">
-                            <img class="card-img-top mb-2" style="width: 75%" src="{% mediafile object.preview %}"/>
+                            <img class="card-img-top mb-2" style="max-width: 35%"
+                                 src="{% mediafile object.preview_image %} "/>
                         </tr>
                         <tr>
                             <td class="w-25">Заголовок</td>
@@ -27,7 +28,7 @@
                             <td class="w-25">ID записи</td>
                             <td>{{ object.id }}</td>
                         </tr>
-                         <tr>
+                        <tr>
                             <td class="w-25">Создана</td>
                             <td>{{ object.created_at }}</td>
                         </tr>
