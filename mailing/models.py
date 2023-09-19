@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.contrib.auth.models import Permission, User
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 NULLABLE = {'blank': True, 'null': True}
@@ -9,6 +11,7 @@ class Client(models.Model):
     full_name = models.CharField(max_length=255)
     comment = models.TextField(blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE)
+    is_active = models.BooleanField(default=True, verbose_name='Активный')
 
     def __str__(self):
         return self.full_name
