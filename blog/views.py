@@ -70,7 +70,6 @@ class BlogPostUpdateView(LoginRequiredMixin, UpdateView):
     def get_object(self, queryset=None):
         title = super().get_object(queryset)
         blog = get_object_or_404(BlogPost, title=title)
-        print(self.request.user.groups.all().values())
         user_groups = [group.name for group in self.request.user.groups.all()]
         if blog.owner != self.request.user and 'Managers' not in user_groups:
             raise Http404
