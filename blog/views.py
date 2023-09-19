@@ -35,6 +35,13 @@ class BlogPostListView(ListView):
         queryset = BlogPost.objects.filter(is_published=True)
         return queryset
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        user_group_names = [group.name for group in user.groups.all()]
+        context['user_group_names'] = user_group_names
+        return context
+
 
 class BlogPostDetailView(DetailView):
     model = BlogPost
@@ -63,6 +70,7 @@ class BlogPostUpdateView(LoginRequiredMixin, UpdateView):
     def get_object(self, queryset=None):
         title = super().get_object(queryset)
         blog = get_object_or_404(BlogPost, title=title)
+        print(self.request.user.groups.all().values())
         user_groups = [group.name for group in self.request.user.groups.all()]
         if blog.owner != self.request.user and 'Managers' not in user_groups:
             raise Http404

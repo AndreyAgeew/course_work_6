@@ -23,8 +23,12 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="btn-group">
                                 <a href="{% url 'blog:detail' item.slug %}" class="btn btn-sm btn-outline-secondary">Подробно</a>
-                                <a href="{% url 'blog:update' item.slug %}" class="btn btn-sm btn-outline-secondary">Редактировать</a>
-                                <a href="{% url 'blog:delete' item.slug %}" class="btn btn-sm btn-outline-secondary">Удалить</a>
+                                {% if item.owner.email == user.email or 'Managers' in user_group_names %}
+                                    <a href="{% url 'blog:update' item.slug %}"
+                                       class="btn btn-sm btn-outline-secondary">Редактировать</a>
+                                    <a href="{% url 'blog:delete' item.slug %}"
+                                       class="btn btn-sm btn-outline-secondary">Удалить</a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
