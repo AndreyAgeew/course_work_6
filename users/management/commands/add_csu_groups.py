@@ -1,4 +1,6 @@
 import json
+import os
+
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
@@ -19,7 +21,7 @@ class Command(BaseCommand):
             is_staff=True,
             is_superuser=True
         )
-        user.set_password('qwerty123')
+        user.set_password(os.getenv('ADMIN_PASSWORD'))
         user.save()
         with open(BASE_DIR / 'users/fixtures/groups_fixture.json', 'r', encoding='cp1251') as file:
             group_data = json.load(file)
