@@ -1,9 +1,8 @@
 from random import sample
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from django.views.generic import TemplateView
+from django.shortcuts import redirect, get_object_or_404
+from django.views.generic import TemplateView, ListView, CreateView, DetailView
 from blog.models import BlogPost
-from .models import Mailing, Client, Message
+from .models import Mailing, Client, Message, Log
 from .forms import MailingForm, MessageForm
 
 
@@ -11,71 +10,66 @@ class HomeView(TemplateView):
     template_name = 'mailing/home.html'
     extra_context = {
         'title': 'Главная страница',
-        'object_list': Mailing.objects.all()
     }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_posts = list(BlogPost.objects.all())
         context['random_blog_posts'] = sample(all_posts, min(3, len(all_posts)))
+        context['object_list'] = Mailing.objects.all()
         return context
 
 
-class MailingCreateView(View):
-    template_name = 'mailing/create_mailing.html'
+class MailingCreateView(CreateView):
+    model = Mailing
     form_class = MailingForm
+    template_name = 'mailing/create_mailing.html'
 
-    def get(self, request):
-        form = self.form_class()
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            mailing = form.save()
-            return redirect('mailing_detail', pk=mailing.pk)
-        return render(request, self.template_name, {'form': form})
+    def form_valid(self, form):
+        mailing = form.save()
+        return redirect('mailing_detail', pk=mailing.pk)
 
 
-class MailingDetailView(View):
+class MailingDetailView(DetailView):
+    model = Mailing
     template_name = 'mailing/mailing_detail.html'
+    context_object_name = 'mailing'
 
-    def get(self, request, pk):
-        mailing = get_object_or_404(Mailing, pk=pk)
-        messages = Message.objects.filter(mailing=mailing)
-        return render(request, self.template_name, {'mailing': mailing, 'messages': messages})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['messages'] = Message.objects.filter(mailing=self.object)
+        return context
 
 
-class MessageCreateView(View):
-    template_name = 'mailing/create_message.html'
+class MessageCreateView(CreateView):
+    model = Message
     form_class = MessageForm
+    template_name = 'mailing/create_message.html'
 
-    def get(self, request):
-        form = self.form_class()
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request, mailing_pk):
-        mailing = get_object_or_404(Mailing, pk=mailing_pk)
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.mailing = mailing
-            message.save()
-            return redirect('mailing_detail', pk=mailing.pk)
-        return render(request, self.template_name, {'form': form})
+    def form_valid(self, form):
+        mailing = get_object_or_404(Mailing, pk=self.kwargs['mailing_pk'])
+        message = form.save(commit=False)
+        message.mailing = mailing
+        message.save()
+        return redirect('mailing_detail', pk=mailing.pk)
 
 
-class ClientListView(View):
+class ClientListView(ListView):
+    model = Client
     template_name = 'mailing/client_list.html'
-
-    def get(self, request):
-        clients = Client.objects.all()
-        return render(request, self.template_name, {'clients': clients})
+    context_object_name = 'clients'
 
 
-class MailingListView(View):
+class MailingListView(ListView):
+    model = Mailing
     template_name = 'mailing/mailing_list.html'
+    context_object_name = 'mailings'
 
-    def get(self, request):
-        mailings = Mailing.objects.all()
-        return render(request, self.template_name, {'mailings': mailings})
+
+class DeliveryReportView(ListView):
+    model = Log
+    template_name = 'mailing/delivery_report.html'
+    context_object_name = 'delivery_logs'
+
+    def get_queryset(self):
+        return Log.objects.filter(status='success')
