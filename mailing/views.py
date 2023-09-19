@@ -1,10 +1,11 @@
 from random import sample
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, CreateView, DetailView, DeleteView, UpdateView
 from blog.models import BlogPost
+from users.models import User
 from .models import Mailing, Client, Message, Log
 from .forms import MailingForm, MessageForm, ClientForm
 
@@ -51,6 +52,11 @@ class MailingCreateView(LoginRequiredMixin, CreateView):
         self.mailing_pk = new_mailing.pk
         return super().form_valid(form)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def get_success_url(self):
         return reverse_lazy('mailing:create_message', kwargs={'mailing_pk': self.mailing_pk})
 
@@ -66,6 +72,11 @@ class MailingUpdateView(LoginRequiredMixin, UpdateView):
             new_mailing.owner = self.request.user
             new_mailing.save()
         return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def get_object(self, queryset=None):
         mailing = super().get_object(queryset)
@@ -124,16 +135,12 @@ class ClientCreateView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         data = super().get_context_data(object_list=None, **kwargs)
-        client = get_object_or_404(Mailing, id=data.pk)
-        user_groups = [group.name for group in self.request.user.groups.all()]
-        if client.owner != self.request.user and 'Managers' not in user_groups:
-            raise Http404
         data['title'] = "Создание нового клиента."
         return data
 
     def form_valid(self, form):
         self.object = form.save()
-        self.object.creator = self.request.user
+        self.object.owner = self.request.user
         self.object.save()
         return super().form_valid(form)
 
