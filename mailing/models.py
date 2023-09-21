@@ -1,6 +1,4 @@
 from django.conf import settings
-from django.contrib.auth.models import Permission, User
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 NULLABLE = {'blank': True, 'null': True}
