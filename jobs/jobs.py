@@ -36,6 +36,7 @@ def send_mailings():
             is_mailing = True
 
         if is_mailing:
+            mailing.save()
             for message in messages:
                 try:
 
@@ -45,7 +46,6 @@ def send_mailings():
                         from_email=settings.EMAIL_HOST_USER,
                         recipient_list=emails
                     )
-                    mailing.save()
 
                 except Exception as e:
 

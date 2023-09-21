@@ -157,7 +157,6 @@ class MessageCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         mailing = get_object_or_404(Mailing, pk=self.kwargs['mailing_pk'])
-        print(mailing)
         message = form.save(commit=False)
         message.mailing = mailing
         message.save()

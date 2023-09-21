@@ -1,3 +1,5 @@
+from time import sleep
+
 from django.apps import AppConfig
 
 
@@ -7,4 +9,5 @@ class MailingConfig(AppConfig):
 
     def ready(self):
         from jobs import updater
+        sleep(2)
         updater.start()
